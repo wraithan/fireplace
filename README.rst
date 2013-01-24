@@ -11,6 +11,16 @@ Prerequirements
 - ``nunjucks``: For templates
 
 
+If you intend to use Flue (the mocked-out API server), you will also need to
+have Flask and perhaps a few other packages installed. That can be set up by
+running ::
+
+    pip install -r flue/requirements.txt
+
+
+You may wish to run Flue in a virtualenv.
+
+
 Usage
 -----
 
@@ -34,3 +44,11 @@ Bugs
   be recompiled when the damper is started.
 - If new templates or less files are added, they will not be recognized until
   the damper is restarted.
+
+
+Missing Features
+----------------
+
+- RTL detection or support
+- Client-side support for coercing locales to their supported equivalent
+  (i.e.: )

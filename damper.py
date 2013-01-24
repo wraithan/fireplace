@@ -19,7 +19,8 @@ def watch():
     say('watching %d files...' % len(towatch))
     before = set([(f, os.stat(f).st_mtime) for f in towatch])
     while 1:
-        for deleted in (x for x in towatch if not os.path.exists(x)):
+        for deleted in (x for x in frozenset(towatch) if
+                        not os.path.exists(x)):
             towatch.remove(deleted)
         after = set([(f, os.stat(f).st_mtime) for f in towatch])
         render_list([f for f, d in before.difference(after)])
@@ -32,6 +33,7 @@ class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         SimpleHTTPRequestHandler.__init__(self, *args, **kwargs)
         self.extensions_map['.webapp'] = 'application/x-web-app-manifest+json'
+        self.extensions_map['.woff'] = 'application/x-font-woff'
 
 
 if not os.fork():
@@ -75,10 +77,13 @@ elif not os.fork():
             return
 
         os.system(
-            'nunjucks-precompile ./hearth/templates > hearth/templates.js')
-        data = []
+            #'nunjucks-precompile ./hearth/templates > hearth/templates.js')
+            '/opt/nunjucks/bin/precompile ./hearth/templates > hearth/templates.js')
+        data = ['/* This file was automatically generated. */\n']
         with open('hearth/templates.js') as templatefile:
             for line in templatefile:
+                # Rewrite template paths with dot notation.
+                # E.g.: home/featured.html -> home.featured
                 if line.startswith('templates["'):
                     eq_pos = line.find('=')
                     name = line[11:eq_pos - 3]
@@ -90,6 +95,7 @@ elif not os.fork():
 
                 data.append(line)
 
+        # Write the templates to the template file.
         with open('hearth/templates.js', 'w') as outfile:
             outfile.write(''.join(data))
 
