@@ -1,0 +1,138 @@
+<section class="main product-details listing expanded c">
+  {{ market_tile(product, link=False) }}
+</section>
+
+{{ notification(product, amo, mkt, is_dev, unrated_brazil_game) }}
+
+<section class="main" id="installed">
+  <div>
+    <p>
+      {{ _('Installed!') }}
+    </p>
+    <p class="how mac">
+      {% trans %}
+        Launch this app from your <b>Applications</b> directory.
+      {% endtrans %}
+    </p>
+    <p class="how windows">
+      {% trans %}
+        Launch this app from your <b>Windows desktop</b> or
+        <b>Start &#9658; All Programs</b>.
+      {% endtrans %}
+    </p>
+    <p class="how linux">
+      {% trans %}
+        Launch this app from your <b>Dash</b>, <b>Application picker</b>,
+        or <b>Applications menu</b>.
+      {% endtrans %}
+    </p>
+  </div>
+</section>
+<div id="purchased-message"></div>
+
+<section class="main blurbs infobox">
+  <div>
+    <p class="summary">
+      {{ product.summary|nl2br }}
+      {% if super_long %}
+        <a href="#" class="show-toggle" data-toggle-text="{{ _('Less&hellip;') }}">{{ _('More&hellip;') }}</a>
+      {% endif %}
+    </p>
+    {% if descr_len or comments_len or product.is_packaged %}
+      <div{% if super_long %} class="collapsed"{% endif %}>
+        {% if descr_len %}
+          <h3>{{ _('Description') }}</h3>
+          <div class="description">{{ product.description|nl2br }}</div>
+        {% endif %}
+        {% if comments_len %}
+          <h3>{{ _('Developer Comments') }}</h3>
+          <div class="developer-comments">{{ product.developer_comments|nl2br }}</div>
+        {% endif %}
+        {% if product.is_packaged %}
+          <h3>{{ _('Version') }}</h3>
+          <div class="package-version">
+            {{- _('Latest version: {0}').format(product.current_version) -}}
+          </div>
+          <div class="release-notes">
+            {{- product.current_version.releasenotes|nl2br -}}
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<div id="ratings-placeholder" class="loading"></div>
+
+<section id="support" class="main infobox support c">
+  <div>
+    <ul class="c">
+      {% if product.support_email %}
+        <li class="support-email">
+          {{ emaillink(product.support_email.localized_string,
+                       _('Support Email')) }}
+        </li>
+      {% endif %}
+      {% if product.support_url %}
+        <li class="support-url">
+          <a rel="external" {{ product.support_url|external_href }}>
+            {{ _('Support Site') }}</a>
+        </li>
+      {% endif %}
+      {% if product.homepage %}
+        <li class="homepage">
+          <a rel="external" {{ product.homepage|external_href }}>{{ _('Homepage') }}</a>
+        </li>
+      {% endif %}
+      {% if product.is_public() or is_reviewer %}
+        {% if product.privacy_policy %}
+          <li><a href="{{ product.get_detail_url('privacy') }}">
+            {{ _('Privacy Policy') }}</a></li>
+        {% endif %}
+        {% if waffle.switch('app-stats') and product.public_stats %}
+          <li><a rel="external" href="{{ url('mkt.stats.overview', product.app_slug) }}">
+            {{ _('Statistics') }}</a></li>
+        {% endif %}
+      {% endif %}
+      {% if abuse_form %}
+        <li><a href="{{ product.get_detail_url('abuse') }}">
+          {{ _('Report Abuse') }}</a></li>
+      {% endif %}
+    </ul>
+    {% if not waffle.switch('disabled-payments') %}
+      {# no payments for now #}
+      {% set upsell = product.upsell %}
+      {% if upsell %}
+        {% set prm = upsell.premium_addon %}
+        {% if prm and prm.listed_in(region=request.REGION) %}
+          <a id="upsell" class="fatbutton"
+             href="{{ prm.get_url_path()|urlparams(src='mkt-detail-upsell') }}">
+             <span class="avail">{{ _('Premium version available') }}</span>
+             <img class="icon" src="{{ prm.get_icon_url(16) }}">
+             <span class="name">{{ prm.name }}</span>
+          </a>
+        {% endif %}
+      {% endif %}
+    {% endif %}
+  </div>
+</section>
+
+{% if content_ratings %}
+  <div class="main content-ratings infobox c">
+    <div>
+      <h3>
+        {% trans DEJUS=mkt.ratingsbodies.DJCTQ.full_name,
+                 DEJUS_URL=mkt.ratingsbodies.DJCTQ.url %}
+          Rating by the <a href="{{ DEJUS_URL }}" target="_blank" title="{{ DEJUS }}">DEJUS</a>
+        {% endtrans %}
+      </h3>
+      {% for content_rating in content_ratings %}
+        {% set rating = content_rating.get_rating() %}
+        <div class="content-rating c">
+          <div class="icon icon-{{ rating.name }}">{{ rating.name }}</div>
+          <p class="description">{{ rating.description }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}

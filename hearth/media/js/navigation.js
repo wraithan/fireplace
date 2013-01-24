@@ -135,10 +135,35 @@ var nav = (function() {
         // Something something back joke.
         if (stack.length > 1) {
             stack.shift();
-            $(window).trigger('loadfragment', stack[0].path);
+            z.win.trigger('loadfragment', stack[0].path);
         } else {
             console.log('attempted nav.back at root!');
         }
+    }
+
+    var builder = require('builder');
+    var views = require('views');
+
+    var last_bobj = null;
+    function navigate(url, params) {
+        if (!url) return;
+
+        // Terminate any outstanding requests.
+        if (last_bobj) {
+            last_bobj.terminate();
+        }
+
+        // If we're navigating from a hash, just pretend it's a plain old URL.
+        if (url.substr(0, 2) == '#!') {
+            url = url.substr(2);
+        }
+
+        console.log('Navigating', url);
+        var view = views.match(url);
+
+        var bobj = last_bobj = builder.getBuilder();
+        z.page.html(view[0](bobj, view[1], params));
+
     }
 
     $('#nav-back').on('click', _pd(back));
@@ -150,7 +175,8 @@ var nav = (function() {
         back: back,
         oldClass: function() {
             return oldClass;
-        }
+        },
+        navigate: navigate
     };
 
 })();

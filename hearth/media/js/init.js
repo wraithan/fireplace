@@ -16,20 +16,16 @@ var z = {
         return '-' + z.prefix + '-' + property;
     },
     canInstallApps: true,
-    allowAnonInstalls: !!$('body').data('allow-anon-installs'),
-    enableSearchSuggestions: !!$('body').data('enable-search-suggestions'),
+    allowAnonInstalls: settings.allow_anon_installs,
+    enableSearchSuggestions: settings.search_suggestions_enabled,
     confirmBreakNum: 6
 };
 
 z.prefixUpper = z.prefix[0].toUpperCase() + z.prefix.substr(1);
 
 (function() {
-    _.extend(z, {
-        nav: BrowserUtils()
-    });
-
     function trigger() {
-        $(window).trigger('saferesize');
+        z.win.trigger('saferesize');
     }
     window.addEventListener('resize', _.debounce(trigger, 200), false);
 })();
@@ -52,33 +48,7 @@ $(document).ready(function() {
             .find('button, input, select, textarea').attr('disabled', true)
             .addClass('disabled');
     }
-    var data_user = $('body').data('user');
-    _.extend(z, {
-        anonymous: data_user.anonymous,
-        pre_auth: data_user.pre_auth
-    });
-
-    var gaiaCookie = $.cookie('gaia');
-
-    // Set cookie if user is on B2G.
-    // TODO: remove this once we allow purchases on desktop/android.
-    if (!gaiaCookie && z.capabilities.gaia) {
-        $.cookie('gaia', 'true', {path: '/'});
-
-        // reload the fragment for updated content.
-        z.page.trigger('refreshfragment');
-    }
-
-    // Sets a tablet cookie.
-    var tabletCookie = $.cookie('tablet');
-    if (!tabletCookie && z.capabilities.tablet) {
-        $.cookie('tablet', 'true', {path: '/'});
-        if (z.body.hasClass('sony') && !z.body.hasClass('desktop')) {
-            // Reload to get the tablet design.
-            window.location.reload();
-            // TODO: Figure out a smarter way to do this for the real Marketplace.
-        }
-    }
+    z.anonymous = true;
 
     stick.basic();
 });
@@ -109,67 +79,37 @@ z.page.on('fragmentloaded', function() {
         $outer.animate({scrollTop: $outer.height()}, 1000);
     }));
 
-    $(window).bind('overlay_dismissed', function() {
+    z.win.bind('overlay_dismissed', function() {
        $nav.removeClass('active');
     });
-
-    // Hijack external links if we're within the app.
-    if (z.capabilities.chromeless) {
-        $('a[rel=external]').attr('target', '_blank');
-    }
-
-    // Initialize selected class for currently active search filter (if any).
-    function initSelectedFilter() {
-        var sortoption = z.getVars();
-
-        $('#filter-sort li a').removeClass('sel');
-        switch (sortoption.sort) {
-            case 'None':
-                $('#filter-sort li.relevancy a').addClass('sel');
-                break;
-            case 'popularity':
-                $('#filter-sort li.popularity a').addClass('sel');
-                break;
-            case 'rating':
-                $('#filter-sort li.rating a').addClass('sel');
-                break;
-            case '':
-            case undefined:
-                // If there's nothing selected, the first one is always the
-                // default.
-                $('#filter-sort li:first-child a').addClass('sel');
-        }
-    }
-
-    if (z.capabilities.desktop) {
-        initSelectedFilter();
-    }
 
     // Header controls.
     $('header').on('click', '.header-button', function(e) {
         var $this = $(this),
-            $btns = $('.header-button');
+            $btns = $('.header-button'),
+            $sq = $('#search-q'),
+            $filters = $('#filters');
 
         if ($this.hasClass('dismiss')) {
             // Dismiss looks like back but actually just dismisses an overlay.
-            $('#filters').removeClass('show');
+            $filters.removeClass('show');
         } else if ($this.hasClass('filter')) {
             // `getVars()` defaults to use location.search.
             initSelectedFilter();
-            $('#filters').addClass('show');
+            $filters.addClass('show');
         } else if ($this.hasClass('search')) {
             z.body.addClass('show-search');
             $btns.blur();
-            $('#search-q').focus();
+            $sq.focus();
         } else if ($this.hasClass('cancel')) {
             z.body.removeClass('show-search');
-            $('#search-q').blur();
+            $sq.blur();
             $btns.blur();
         }
 
         z.page.on('fragmentloaded', function() {
             z.body.removeClass('show-search');
-            $('#search-q').blur();
+            $sq.blur();
         });
         e.preventDefault();
     });
@@ -181,16 +121,5 @@ z.page.on('fragmentloaded', function() {
     //     $('<div class="overlay dropdown show">').appendTo(z.body);
     //     $('.account-links').toggleClass('active');
     // });
-
-    // We would use :hover, but we want to hide the menu on fragment load!
-    z.body.on('mouseover', '.account-links', function() {
-        $('.account-links').addClass('active');
-    }).on('mouseout', '.account-links', function() {
-        $('.account-links').removeClass('active');
-    }).on('click', '.account-links a', function() {
-        $('.account-links').removeClass('active');
-    }).on('fragmentloaded', function() {
-        $('.account-links.active').removeClass('active');
-    });
 
 });

@@ -1,0 +1,42 @@
+{% macro market_tile(app, link=False, src=None) %}
+  {% set tag = 'a' if link else 'div' %}
+  <{{ tag }} class="product mkt-tile {{ classes|join(' ') }}"
+    {% if link %} href="{{ app.url|urlparams(src=src) }}"{% endif %}
+    {% for k, v in data_attrs.items() %} data-{{ k }}="{{ v }}"{% endfor %}>
+    <div class="icon featured_tile" style="background-image:url({{ app.image_assets.featured_tile[0] }})"></div>
+    <img class="icon asset-tile" alt="" src="{{ app.image_assets.mobile_tile[0] }}"
+         data-hue="{{ app.image_assets.mobile_tile[1] }}">
+    <img class="icon" alt="" src="{{ app.icon[64] }}">
+    <div class="info">
+      <h3>{{ app.name }}</h3>
+      {# `current_version` won't show versions with invalid statuses #}
+      {% if app.current_version %}
+        {{ market_button(app, classes=classes) }}
+      {% endif %}
+      {% if app.listed_authors %}
+        <div class="author lineclamp vital">{{ app.listed_authors[0].name }}</div>
+      {% endif %}
+      <div class="price vital">{{ app.price }}</div>
+      <div class="rating vital{{ ' unrated' if not app.reviews.count }}">
+        {% if not link %}
+          <a href="{{ reverse('ratings', [app.slug]) }}" class="rating_link">
+        {% endif %}
+        {{ app.ratings.average|stars }}
+        {% if app.ratings.count %}
+          <span class="cnt">
+            {% trans num=app.ratings.count, cnt=app.ratings.count|numberfmt %}
+              {{ cnt }} Rating
+            {% pluralize %}
+              {{ cnt }} Ratings
+            {% endtrans %}
+          </span>
+       {% endif %}
+       {% if not link %}</a>{% endif %}
+      </div>
+    </div>
+    {% for notice in notices %}
+      <div class="bad-app">{{ notice|safe }}</div>
+    {% endfor %}
+  </{{ tag }}>
+  <div class="tray previews full"></div>
+{% endmacro %}

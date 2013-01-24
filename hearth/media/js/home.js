@@ -1,3 +1,15 @@
+views.homepage = function(builder) {
+
+    builder.loadParts(
+        api('homepage'),
+        [{dest: '#featured-home ul', template: 'home.featured_apps'},
+         {dest: '.categories ul', template: 'home.category_tile'}]
+    );
+
+    return nunjucks.env.render('home.main');
+};
+
+
 (function() {
     var els = $('.grid .mkt-tile');
 

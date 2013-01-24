@@ -1,15 +1,8 @@
 (function() {
 
-    var sliderTemplate = getTemplate($('#preview-tray'));
-    var previewTemplate = getTemplate($('#single-preview'));
-
     // magic numbers!
     var THUMB_WIDTH = 180;
     var THUMB_PADDED = 195;
-
-    if (!sliderTemplate || !previewTemplate) {
-        return;
-    }
 
     z.page.on('dragstart', function(e) {
         e.preventDefault();
@@ -27,14 +20,15 @@
          if (!product.previews) return;
         _.each(product.previews, function(p) {
             p.typeclass = (p.type === 'video/webm') ? 'video' : 'img';
-            previewsHTML += previewTemplate(p);
+            previewsHTML += nunjucks.env.render('detail.single_preview', p);
         });
 
         var dotHTML = '';
         if (product.previews.length > 1) {
             dotHTML = Array(product.previews.length + 1).join('<b class="dot"></b>');
         }
-        $tray.html(sliderTemplate({previews: previewsHTML, dots: dotHTML}));
+        $tray.html(nunjucks.env.render('detail.preview_tray',
+                                       {previews: previewsHTML, dots: dotHTML}));
 
         var numPreviews = $tray.find('li').length;
 

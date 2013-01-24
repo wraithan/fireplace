@@ -15,19 +15,6 @@ def say(s):
     print '[%s] %s' % (time.strftime('%X'), s)
 
 
-def render_list(files):
-    if not files:
-        return
-    for file_ in files:
-        command = 'lessc %s %s.css' % (file_, file_)
-        print command
-        os.system(command)
-        if file_ in includes:
-            say('re-compiling %d dependencies' % len(includes[file_]))
-            render_list(includes[file_])
-    say('re-compiled %d files' % len(files))
-
-
 def watch():
     say('watching %d files...' % len(towatch))
     before = set([(f, os.stat(f).st_mtime) for f in towatch])
@@ -50,11 +37,24 @@ class Handler(SimpleHTTPRequestHandler):
 if not os.fork():
     # Less file watcher
 
+    def render_list(files):
+        if not files:
+            return
+
+        for file_ in files:
+            command = 'lessc %s %s.css' % (file_, file_)
+            print command
+            os.system(command)
+            if file_ in includes:
+                say('re-compiling %d dependencies' % len(includes[file_]))
+                render_list(includes[file_])
+        say('re-compiled %d files' % len(files))
+
     for root, dirs, files in os.walk('./hearth/media'):
         less = set('%s/%s' % (root, f) for f in files if f.endswith('.less'))
         for file_ in less:
             with open(file_, 'r') as fd:
-                body = post_file = fd.read()
+                body = fd.read()
             imp = re.search('@import \'([a-zA-Z0-9_-]+)\';', body)
             if imp:
                 imp_file = '%s/%s.less' % (root, imp.group(1))
@@ -66,6 +66,45 @@ if not os.fork():
 
     render_list([x for x in towatch if not os.path.exists(x + '.css')])
     watch()
+
+elif not os.fork():
+    # Template file watcher
+
+    def render_list(files):
+        if not files:
+            return
+
+        os.system(
+            'nunjucks-precompile ./hearth/templates > hearth/templates.js')
+        data = []
+        with open('hearth/templates.js') as templatefile:
+            for line in templatefile:
+                if line.startswith('templates["'):
+                    eq_pos = line.find('=')
+                    name = line[11:eq_pos - 3]
+                    if name.endswith('.html'):
+                        name = name[:-5]
+                    name = name.replace('/', '.')
+                    line = 'templates["%s"] %s' % (
+                        name, line[eq_pos:])
+
+                data.append(line)
+
+        with open('hearth/templates.js', 'w') as outfile:
+            outfile.write(''.join(data))
+
+        say('re-compiled templates')
+
+    for root, dirs, files in os.walk('./hearth/templates'):
+        if '.git' in dirs:
+            dirs.remove('.git')
+        towatch |= set('%s/%s' % (root, f) for f in files if
+                       f.endswith('.html'))
+
+    compiler = lambda f: 'nunjucks-precompile %s' % f
+    render_list(True)  # Force a recompile on start.
+    watch()
+
 else:
     # HTTP server
 

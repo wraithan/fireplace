@@ -4,6 +4,12 @@
 // ...will display as http://wvtc.net/
 //
 $(window).bind('fragmentloaded', function mungeLinks() {
+
+    // Hijack external links if we're within the app.
+    if (z.capabilities.chromeless) {
+        $('a[rel=external]').attr('target', '_blank');
+    }
+
     $('a[href^="http://outgoing.mozilla.org"]').each(function(e) {
         var $a = $(this),
             outgoing = $a.attr('href'),

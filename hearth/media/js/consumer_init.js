@@ -2,6 +2,11 @@
 
 (function() {
 
+    var splash = $('#splash-overlay');
+    z.page.on('loaded', function() {
+       splash.addClass('hide');
+    });
+
     var modules = [
         'feedback',
         'install',
@@ -12,26 +17,15 @@
 
     define('marketplace', modules, function() {
 
-        // Initialize analytics tracking.
-        z.page.on('fragmentloaded', function(event, href, popped, state) {
-            // Otherwise we'll track back button hits etc.
-            if (!popped) {
-                // GA track every fragment loaded page.
-                _gaq.push(['_trackPageview', href]);
-            }
-        });
-
-        // Check for mobile sizing.
-        if (z.capabilities.mobile && z.body.hasClass('desktop')) {
-            var notification = require('notification');
-
-            notification({
-                message: gettext('Click here to view the Mobile Marketplace!')
-            }).then(function() {
-                $.cookie('mobile', 'true', {path: '/'});
-                window.location.reload();
-            }).fail(alert);
-
+        if (settings.tracking_enabled) {
+            // Initialize analytics tracking.
+            z.page.on('loaded', function(event, href, popped, state) {
+                // Otherwise we'll track back button hits etc.
+                if (!popped) {
+                    // GA track every fragment loaded page.
+                    _gaq.push(['_trackPageview', href]);
+                }
+            });
         }
 
         // This lets you refresh within the app by holding down command + R.
@@ -43,10 +37,11 @@
             });
         }
 
+        var hash = window.location.hash;
+        nav.navigate(hash && hash.substr(0, 2) == '#!' ? hash : '/');
+
     });
 
     require('marketplace');
-
-    $('#splash-overlay').addClass('hide');
 
 })();
