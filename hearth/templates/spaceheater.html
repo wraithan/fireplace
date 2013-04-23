@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+    <title>Firefox Marketplace</title>
+    <link rel="stylesheet" href="/media/css/splash.styl.css">
+
+    <!-- These styles need to come first. -->
+    <link rel="stylesheet" href="/media/compiled.css">
+  </head>
+  <body class="home" data-spaceheater>
+
+    <div id="splash-overlay"><div class="throbber"></div></div>
+
+    <header id="site-header" class="header site-header">
+    </header>
+
+    <div class="overlay nav-overlay"></div>
+    <div id="container">
+      <div id="page" role="main">{{ data|safe }}</div>
+    </div>
+
+    <footer id="site-footer"></footer>
+
+    <div id="login" class="overlay"></div>
+
+    <!-- screenshot lightbox -->
+    <div id="lightbox">
+      <section>
+        <ul class="content"></ul>
+        <a class="close" href="#">&times;</a>
+      </section>
+    </div>
+
+    <script src="/media/js/l10n.js"></script>
+    <script src="/media/compiled.js"></script>
+
+  </body>
+</html>

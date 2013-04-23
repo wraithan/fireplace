@@ -71,6 +71,6 @@ define('helpers',
 
         range: _.range,
 
-        navigator: window.navigator
+        language: navigator.language
     };
 });
