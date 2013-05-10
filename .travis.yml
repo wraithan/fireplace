@@ -19,7 +19,9 @@ before_script:
   - "mv hearth/media/js/settings_travis.js hearth/media/js/settings_local.js"
   - "nohup node damper.js &"  # start the damper
 
-  - "source ~/virtualenv/python2.7/bin/activate"
+  - "pip install virtualenv"
+  - "virtualenv travis"
+  - "source travis/bin/activate"
   - "python --version"
   - "pip install -r flue/requirements.txt"  # install flue requirements
   - "nohup python flue/main.py"  # start flue locally
