@@ -18,8 +18,12 @@ before_script:
   - "sh -e /etc/init.d/xvfb start"
   - "mv hearth/media/js/settings_travis.js hearth/media/js/settings_local.js"
   - "nohup node damper.js &"  # start the damper
+
+  - "source ~/virtualenv/python2.7/bin/activate"
+  - "python --version"
   - "pip install -r flue/requirements.txt"  # install flue requirements
   - "nohup python flue/main.py"  # start flue locally
+
   - "git clone git://github.com/n1k0/casperjs.git casperjs"
   - "cd casperjs && git checkout 1.0.2 && cd .."  # Use Homebrew's version of casper
 script:
