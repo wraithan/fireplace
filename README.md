@@ -194,7 +194,10 @@ make test
 If you want to run Fireplace locally in a way that's similar to
 production, you can use [nginx](http://nginx.org/).
 This snippet is an ``nginx.conf`` example. You'll probably want to
-edit the port numbers to match your own configuration.
+edit the port numbers to match your own configuration. Also you'll
+need to edit `hearth/media/js/settings_local.js` (if it doesn't exist
+copy it from `settings_local.js.dist` in the same directory) if you
+want to point at your local zamboni.
 
 Snippet:
 
